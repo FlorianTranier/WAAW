@@ -38,7 +38,7 @@ export default {
             analyser.connect(audioCtx.destination);
 
             analyser.fftSize = 32768;
-            analyser.minDecibels = -80;
+            analyser.minDecibels = -85;
             analyser.smoothingTimeConstant = 0.0
 
             const bufferLength = analyser.frequencyBinCount;
