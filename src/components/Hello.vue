@@ -15,6 +15,9 @@
         <div>https://<b>waaw.space</b>/watch?v=Y4HWvsGs0rY</div>
         <h2>Step 3</h2>
         <div>Enjoy 🎧</div>
+        <br>
+        <h2>⚠️</h2>
+        <div>❌ Currently not working on Safari and iOS/iPadOS devices</div>
     </main>
 </template>
 
