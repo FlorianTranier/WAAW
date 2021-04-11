@@ -38,7 +38,8 @@ export default {
             analyser.connect(audioCtx.destination);
 
             analyser.fftSize = 32768;
-            analyser.minDecibels = -85;
+            analyser.minDecibels = -70;
+            analyser.maxDecibels = -10;
             analyser.smoothingTimeConstant = 0.0
 
             const bufferLength = analyser.frequencyBinCount;
@@ -73,7 +74,8 @@ export default {
                     const sum = dataArray.slice(i, j).reduce((accumulator, currentValue) => accumulator + currentValue, 0)
                     const mean = sum / (j - i)
 
-                    barHeight = mean ** 1.1 + 1;
+                    barHeight = mean ** (1.11 + i / 10000) + 1;
+                    //console.log(1.1 + dataArray.slice(i, j).length / 1000)
                     ctx.fillStyle = "white";
                     ctx.fillRect(x, (HEIGHT - barHeight) / 2, barWidth, barHeight);
                     //ctx.fillText(i, x, (HEIGHT - barHeight) / 2)
