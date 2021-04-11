@@ -30,6 +30,8 @@ export default {
             canvasElement.height = window.innerHeight;
             const ctx = canvasElement.getContext("2d");
 
+            const AudioContext = window.AudioContext || window.webkitAudioContext
+
             audioCtx = new AudioContext();
             const src = audioCtx.createMediaElementSource(audioElement);
             const analyser = audioCtx.createAnalyser();
