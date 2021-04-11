@@ -1,31 +1,41 @@
 <template>
     <main class="text-center p-4 mx-0">
-        <button v-if="!hideBtn" @click="playAudio" id="play-btn">Play</button>
+        <Controls v-if="hideBtn" id="controls" :audioElement="audioRef" :audioContext="audioCtx" />
+        <button v-if="!hideBtn" @click="playAudio" id="play-btn">
+            <font-awesome-icon icon="play" />
+        </button>
         <audio
             controls
             crossorigin="anonymous"
             id="audio"
-            ref="audioElement"
+            ref="audioRef"
         />
         <canvas ref="canvasElement" id="canvas" />
     </main>
 </template>
 
 <script>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import Controls from './Controls.vue'
 
 export default {
-
+    components: {
+        Controls
+    },
     setup() {
 
         const hideBtn = ref(true);
+        const audioRef = ref(null)
+        const currentTime = computed(() => audioRef.value.currentTime)
         let audioCtx;
 
         function process() {
-            let audioElement = document.getElementById('audio');
+            let audioElement = audioRef.value
+            
             let canvasElement = document.getElementById('canvas');
             const videoId = window.location.search.split("?v=")[1] || window.location.pathname.substr(1);
             audioElement.src = `https://boiling-tundra-34239.herokuapp.com?videoId=${videoId}`;
+            audioElement.volume = 0.5
             canvasElement.width = window.innerWidth;
             canvasElement.height = window.innerHeight;
             const ctx = canvasElement.getContext("2d");
@@ -38,7 +48,7 @@ export default {
             analyser.connect(audioCtx.destination);
 
             analyser.fftSize = 32768;
-            analyser.minDecibels = -70;
+            analyser.minDecibels = -80;
             analyser.maxDecibels = -10;
             analyser.smoothingTimeConstant = 0.0
 
@@ -74,11 +84,11 @@ export default {
                     const sum = dataArray.slice(i, j).reduce((accumulator, currentValue) => accumulator + currentValue, 0)
                     const mean = sum / (j - i)
 
-                    barHeight = mean ** (1.11 + i / 10000) + 1;
-                    //console.log(1.1 + dataArray.slice(i, j).length / 1000)
+                    barHeight = mean ** (1.2 + i / 10000) + 1;
+
                     ctx.fillStyle = "white";
                     ctx.fillRect(x, (HEIGHT - barHeight) / 2, barWidth, barHeight);
-                    //ctx.fillText(i, x, (HEIGHT - barHeight) / 2)
+                    //ctx.fillText(barHeight, x, (HEIGHT - barHeight) / 2)
                     x += barWidth + 10;
                 }
             }
@@ -101,7 +111,10 @@ export default {
 
         return {
             hideBtn,
-            playAudio
+            playAudio,
+            audioRef,
+            audioCtx,
+            currentTime
         }
     },
 }
@@ -127,6 +140,19 @@ export default {
         color: white;
         font-size: 2rem;
         border: solid 0.1rem white;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+    }
+
+    #controls {
+        position: absolute;
+        left: 50%;
+        top: 10%;
+        width: 40vw;
+        height: 5vh;
+        background: black;
+        color: white;
+        font-size: 2rem;
         transform: translate(-50%, -50%);
         z-index: 10;
     }
