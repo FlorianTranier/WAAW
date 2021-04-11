@@ -21,6 +21,9 @@ export default {
         const hideBtn = ref(true);
         let audioCtx;
 
+        const isSafari = !!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/);
+        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
         function process() {
             let audioElement = document.getElementById('audio');
             let canvasElement = document.getElementById('canvas');
@@ -56,7 +59,11 @@ export default {
             let coef = WIDTH <= 1920 ? 1.04 : 1.03
 
             function renderFrame() {
-                requestAnimationFrame(renderFrame);
+                if (isSafari || isIos) {
+                    webkitRequestAnimationFrame(renderFrame);
+                } else {
+                    requestAnimationFrame(renderFrame);
+                }
                 
                 ctx.clearRect(0, 0, WIDTH, HEIGHT);
                 x = 0;
