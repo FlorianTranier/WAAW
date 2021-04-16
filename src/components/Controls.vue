@@ -10,36 +10,34 @@
                 <input @change="changeVolume" min=0 max=1 step=0.01 value='0.50' type="range" name="volume-slider" id="volume-slider" ref="volumeSliderRef" />
                 <font-awesome-icon icon="volume-up" />
             </div>
-            <div class="control">{{ currentTime }}</div>
+            <div class="control">
+                <label for="toggleInfos">
+                    Hide infos
+                    <input type="checkbox" id="toggleInfos" @change="toggleInfos" />
+                </label>
+            </div>
         </div>
     </div>
-    
 </template>
 
 <script>
-import { ref,onBeforeUnmount } from 'vue'
+import { ref } from 'vue'
+import { useStore } from 'vuex'
 export default {
     props: {
         audioElement: HTMLAudioElement,
         audioContext: AudioContext
     },
     setup(props) {
-        const currentTime = ref(0)
+        const store = useStore()
         const paused = ref(true)
         const volumeSliderRef = ref(null)
-
-        const interval = setInterval(() => {
-            paused.value = props.audioElement?.paused
-            currentTime.value = 
-                parseInt(props.audioElement?.currentTime / 60).toString().padStart(2, '0')
-                + ':' 
-                + parseInt(props.audioElement?.currentTime % 60).toString().padStart(2, '0')
-                ?? '00:00'
-        }, 1000)
 
         const changeVolume = () => {
             props.audioElement.volume = volumeSliderRef.value.value
         }
+
+        paused.value = props.audioElement?.paused
 
         const playPause = () => {
             if (paused.value) {
@@ -51,14 +49,16 @@ export default {
             paused.value = props.audioElement?.paused
         }
 
-        onBeforeUnmount(() => clearInterval(interval))
+        const toggleInfos = () => {
+            store.commit("settings/toggleInfos")
+        }
 
         return {
-            currentTime,
             volumeSliderRef,
             changeVolume,
             paused,
-            playPause
+            playPause,
+            toggleInfos
         }
     },
 }

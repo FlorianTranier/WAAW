@@ -1,5 +1,6 @@
 <template>
     <main class="text-center p-4 mx-0">
+        <Infos id="infos" v-if="!loading && !hideInfos" :audioElement="audioRef" />
         <Controls v-if="hideBtn && !loading" id="controls" :audioElement="audioRef" :audioContext="audioCtx" />
         <button v-if="!hideBtn && !loading" @click="playAudio" id="play-btn">
             <font-awesome-icon icon="play" />
@@ -16,28 +17,34 @@
 </template>
 
 <script>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import AudioService from '../services/audio/AudioService'
 import Controls from './Controls.vue'
 import Loader from './Loader.vue'
+import Infos from './Infos.vue'
+import { useStore } from 'vuex'
 
 export default {
     components: {
-        Controls, Loader
+        Controls, Loader, Infos
     },
     setup() {
+        const store = useStore()
 
         const hideBtn = ref(true)
         const audioRef = ref(null)
         const loading = ref(true)
+
         const currentTime = computed(() => audioRef.value.currentTime)
+
+        const audioService = new AudioService()
         let audioCtx, analyser, dataArray, audioElement
         let canvasCtx, canvasElement, barWidth, barHeight, coef
 
         function initAudioProcessing() {
             audioElement = audioRef.value
             
-            const videoId = window.location.search.split("?v=")[1] || window.location.pathname.substr(1);
-            audioElement.src = `https://boiling-tundra-34239.herokuapp.com?videoId=${videoId}`;
+            audioElement.src = audioService.getAudioSource();
             audioElement.volume = 0.5
 
             audioCtx = new AudioContext();
@@ -113,7 +120,6 @@ export default {
                 loading.value = false;
                 renderWaveform();
             })
-            
         })
 
         return {
@@ -122,7 +128,8 @@ export default {
             audioRef,
             audioCtx,
             currentTime,
-            loading
+            loading,
+            hideInfos: computed(() => store.state.settings.infosHidden)
         }
     },
 }
@@ -163,5 +170,12 @@ export default {
         font-size: 2rem;
         transform: translate(-50%, -50%);
         z-index: 10;
+    }
+
+    #infos {
+        position: absolute;
+        z-index: 10;
+        height: 7rem;
+        bottom: 2rem;
     }
 </style>
