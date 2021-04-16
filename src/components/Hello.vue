@@ -1,6 +1,7 @@
 <template>
     <main>
-        <h1>Welcome to WAAW</h1>
+        <img src="../assets/waav-logo-x256.svg" alt="waaw-logo" id="logo">
+        <h1>WAAW</h1>
         <h2>Step 1</h2>
         <div>Find a video on Youtube (preferably a music)</div>
         <h2>Step 2</h2>
@@ -31,5 +32,9 @@
         color: white;
         width: 100vw;
         height: 100vh;
+    }
+
+    #logo {
+        width: 9rem;
     }
 </style>
