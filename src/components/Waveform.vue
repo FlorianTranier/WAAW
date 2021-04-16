@@ -1,4 +1,5 @@
 <template>
+    <Loader v-if="loading" />
     <main class="text-center p-4 mx-0">
         <Controls v-if="hideBtn" id="controls" :audioElement="audioRef" :audioContext="audioCtx" />
         <button v-if="!hideBtn" @click="playAudio" id="play-btn">
@@ -17,32 +18,31 @@
 <script>
 import { computed, onMounted, ref, watch } from 'vue'
 import Controls from './Controls.vue'
+import Loader from './Loader.vue'
 
 export default {
     components: {
-        Controls
+        Controls, Loader
     },
     setup() {
 
-        const hideBtn = ref(true);
+        const hideBtn = ref(true)
         const audioRef = ref(null)
+        const loading = ref(true)
         const currentTime = computed(() => audioRef.value.currentTime)
-        let audioCtx;
+        let audioCtx, analyser, dataArray, audioElement
+        let canvasCtx, canvasElement, barWidth, barHeight, coef
 
-        function process() {
-            let audioElement = audioRef.value
+        function initAudioProcessing() {
+            audioElement = audioRef.value
             
-            let canvasElement = document.getElementById('canvas');
             const videoId = window.location.search.split("?v=")[1] || window.location.pathname.substr(1);
             audioElement.src = `https://boiling-tundra-34239.herokuapp.com?videoId=${videoId}`;
             audioElement.volume = 0.5
-            canvasElement.width = window.innerWidth;
-            canvasElement.height = window.innerHeight;
-            const ctx = canvasElement.getContext("2d");
 
             audioCtx = new AudioContext();
             const src = audioCtx.createMediaElementSource(audioElement);
-            const analyser = audioCtx.createAnalyser();
+            analyser = audioCtx.createAnalyser();
 
             src.connect(analyser);
             analyser.connect(audioCtx.destination);
@@ -54,67 +54,75 @@ export default {
 
             const bufferLength = analyser.frequencyBinCount;
 
-            const dataArray = new Uint8Array(bufferLength);
+            dataArray = new Uint8Array(bufferLength);
 
-            const WIDTH = canvasElement.width;
-            const HEIGHT = canvasElement.height;
+            barWidth = (canvasElement.width / bufferLength) * 52;
 
-            const barWidth = (WIDTH / bufferLength) * 52;
+            coef = canvasElement.width <= 1920 ? 1.04 : 1.03
+        }
 
-            let barHeight;
+        function initCanvas() {
+            canvasElement = document.getElementById('canvas');
+            canvasElement.width = window.innerWidth;
+            canvasElement.height = window.innerHeight;
+            canvasCtx = canvasElement.getContext("2d");
+            canvasCtx.fillStyle = "black";
+            canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+        }
+
+        function renderWaveform() {
+            requestAnimationFrame(renderWaveform);
+            
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             let x = 0;
 
-            let coef = WIDTH <= 1920 ? 1.04 : 1.03
+            analyser.getByteFrequencyData(dataArray);
 
-            function renderFrame() {
-                requestAnimationFrame(renderFrame);
-                
-                ctx.clearRect(0, 0, WIDTH, HEIGHT);
-                x = 0;
+            canvasCtx.fillStyle = "black";
+            canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
 
-                analyser.getByteFrequencyData(dataArray);
+            for (let [i, j] = [40, 41]; i < dataArray.length; i = j) {
 
-                ctx.fillStyle = "black";
-                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                j *= coef
 
-                for (let [i, j] = [40, 41]; i < dataArray.length; i = j) {
+                const sum = dataArray.slice(i, j).reduce((accumulator, currentValue) => accumulator + currentValue, 0)
+                const mean = sum / (j - i)
 
-                    j *= coef
+                barHeight = mean ** (1.2 + i / 10000) + 1;
 
-                    const sum = dataArray.slice(i, j).reduce((accumulator, currentValue) => accumulator + currentValue, 0)
-                    const mean = sum / (j - i)
+                canvasCtx.fillStyle = "white";
+                canvasCtx.fillRect(x, (canvasElement.height - barHeight) / 2, barWidth, barHeight);
 
-                    barHeight = mean ** (1.2 + i / 10000) + 1;
-
-                    ctx.fillStyle = "white";
-                    ctx.fillRect(x, (HEIGHT - barHeight) / 2, barWidth, barHeight);
-                    //ctx.fillText(barHeight, x, (HEIGHT - barHeight) / 2)
-                    x += barWidth + 10;
-                }
+                x += barWidth + 10;
             }
-
-            audioElement.play()
-                .then(() => hideBtn.value = true)
-                .catch(e => hideBtn.value = false);
-            
-            renderFrame();
         }
 
         function playAudio() {
-            let audioElement = document.getElementById('audio');
-            audioElement.play().catch((e) => console.log(e))
+            audioElement.play().catch((e) => console.error(e))
             audioCtx.resume()
             hideBtn.value = true;
         }
 
-        onMounted(process)
+        onMounted(() => {
+            initCanvas()
+            initAudioProcessing()
+            audioElement.addEventListener('loadeddata', () => {
+                audioElement.play()
+                .then(() => hideBtn.value = true)
+                .catch(e => hideBtn.value = false);
+                loading.value = false;
+                renderWaveform();
+            })
+            
+        })
 
         return {
             hideBtn,
             playAudio,
             audioRef,
             audioCtx,
-            currentTime
+            currentTime,
+            loading
         }
     },
 }
