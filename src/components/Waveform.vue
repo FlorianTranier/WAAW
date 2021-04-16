@@ -1,8 +1,7 @@
 <template>
-    <Loader v-if="loading" />
     <main class="text-center p-4 mx-0">
-        <Controls v-if="hideBtn" id="controls" :audioElement="audioRef" :audioContext="audioCtx" />
-        <button v-if="!hideBtn" @click="playAudio" id="play-btn">
+        <Controls v-if="hideBtn && !loading" id="controls" :audioElement="audioRef" :audioContext="audioCtx" />
+        <button v-if="!hideBtn && !loading" @click="playAudio" id="play-btn">
             <font-awesome-icon icon="play" />
         </button>
         <audio
@@ -13,6 +12,7 @@
         />
         <canvas ref="canvasElement" id="canvas" />
     </main>
+    <Loader v-if="loading" />
 </template>
 
 <script>

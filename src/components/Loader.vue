@@ -18,13 +18,16 @@ export default {
 
 @keyframes loadingAnimation {
     0% {
-        transform: scaleX(-1);
+        transform: scaleX(0.5) scaleY(0.5)
     }
-    50% {
-        transform: rotate(180deg);
+    25% {
+
+    }
+    75% {
+
     }
     100% {
-        transform: scaleX(1);
+        transform: scaleX(1.5) scaleY(1.5)
     }
 }
 
@@ -47,7 +50,7 @@ export default {
 }
 
 #loader > * {
-    animation: loadingAnimation 2s infinite alternate linear;
+    animation: loadingAnimation 1.5s infinite alternate;
 }
 
 </style>
