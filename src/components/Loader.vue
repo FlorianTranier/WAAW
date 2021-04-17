@@ -19,7 +19,7 @@
 
     }
     100% {
-        transform: scaleX(1.5) scaleY(1.5)
+        transform: scaleX(1) scaleY(1)
     }
 }
 

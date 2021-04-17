@@ -1,5 +1,6 @@
 <template>
     <main class="text-center p-4 mx-0">
+        <Loader v-if="loading" />
         <Infos id="infos" v-show="!loading && !hideInfos" :audioElement="audioRef" />
         <Controls v-if="hideBtn && !loading" id="controls" :audioElement="audioRef" :audioContext="audioCtx" />
         <button v-if="!hideBtn && !loading" @click="playAudio" id="play-btn">
@@ -13,7 +14,6 @@
         />
         <canvas ref="canvasElement" id="canvas" />
     </main>
-    <Loader v-if="loading" />
 </template>
 
 <script lang="ts">
