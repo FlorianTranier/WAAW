@@ -37,7 +37,7 @@ export default defineComponent({
 
         const changeVolume = () => {
             if (!props.audioElement) return
-            props.audioElement.volume = parseInt(volumeSliderRef.value?.value ?? '50')
+            props.audioElement.volume = parseFloat(volumeSliderRef.value?.value ?? '0.5')
         }
 
         paused.value = props.audioElement?.paused ?? true

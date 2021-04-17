@@ -19,16 +19,16 @@ import { defineComponent } from 'vue'
 
 export default defineComponent({
     props: {
-        audioElement: HTMLAudioElement
+        audioElement: HTMLAudioElement,
+        audioService: AudioService
     },
     setup(props) {
         const currentTime = ref('')
-        const audioService = new AudioService()
         const thumbnailUrl = ref('')
         const title = ref('')
         const duration = ref('')
         
-        audioService.getAudioInfos().then(data => {
+        props.audioService.getAudioInfos().then(data => {
             title.value = data.title
             thumbnailUrl.value = data.thumbnail
             const seconds = parseInt(data.duration)

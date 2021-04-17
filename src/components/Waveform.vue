@@ -1,8 +1,8 @@
 <template>
     <main class="text-center p-4 mx-0">
-        <Loader v-if="loading" />
-        <Infos id="infos" v-show="!loading && !hideInfos" :audioElement="audioRef" />
-        <Controls v-if="hideBtn && !loading" id="controls" :audioElement="audioRef" :audioContext="audioCtx" />
+        <Loader v-if="loading && !listeningMode" />
+        <Infos id="infos" v-show="!loading && !hideInfos && !listeningMode" :audioElement="audioRef" :audioService="audioService" />
+        <Controls v-if="hideBtn && !loading && !listeningMode" id="controls" :audioElement="audioRef" :audioContext="audioCtx" />
         <button v-if="!hideBtn && !loading" @click="playAudio" id="play-btn">
             <font-awesome-icon icon="play" />
         </button>
@@ -23,22 +23,27 @@ import Controls from './Controls.vue'
 import Loader from './Loader.vue'
 import Infos from './Infos.vue'
 import { useStore } from 'vuex'
+import { defineComponent } from 'vue'
 
-export default {
+export default defineComponent({
+    props: {
+        listeningMode: Boolean,
+        videoPath: String
+    },
     components: {
         Controls, Loader, Infos
     },
-    setup() {
+    setup(props) {
         const store = useStore()
 
         const hideBtn = ref(true)
         const audioRef = ref<HTMLAudioElement | null>(null)
         const loading = ref(true)
+        const analyser = ref<AnalyserNode>(null)
 
         const currentTime = computed(() => audioRef.value?.currentTime)
-        const audioService = new AudioService()
+        const audioService = new AudioService(props.videoPath)
         let audioCtx: AudioContext = new AudioContext(),
-            analyser: AnalyserNode,
             dataArray: Uint8Array,
             canvasCtx: CanvasRenderingContext2D,
             canvasElement: HTMLCanvasElement, 
@@ -46,30 +51,45 @@ export default {
             barHeight: number,
             coef: number
 
-        function initAudioProcessing() {
-            if (!audioRef.value) return
+        function initAnalyser(src: MediaElementAudioSourceNode | MediaStreamAudioSourceNode) {
+            analyser.value = audioCtx.createAnalyser();
+            src.connect(analyser.value);
+            if (!props.listeningMode)
+                analyser.value.connect(audioCtx.destination);
 
-            audioRef.value.src = audioService.getAudioSource();
+            analyser.value.fftSize = 32768;
+            analyser.value.minDecibels = -80;
+            analyser.value.maxDecibels = -10;
+            analyser.value.smoothingTimeConstant = 0.0
+
             audioRef.value.volume = 0.5
 
-            const src = audioCtx.createMediaElementSource(audioRef.value);
-            analyser = audioCtx.createAnalyser();
-
-            src.connect(analyser);
-            analyser.connect(audioCtx.destination);
-
-            analyser.fftSize = 32768;
-            analyser.minDecibels = -80;
-            analyser.maxDecibels = -10;
-            analyser.smoothingTimeConstant = 0.0
-
-            const bufferLength = analyser.frequencyBinCount;
+            const bufferLength = analyser.value.frequencyBinCount;
 
             dataArray = new Uint8Array(bufferLength);
 
             barWidth = (canvasElement.width / bufferLength) * 52;
 
             coef = canvasElement.width <= 1920 ? 1.04 : 1.03
+        }
+
+        function initAudioProcessing() {
+            if (!audioRef.value) return
+
+            let src
+            if (props.listeningMode) {
+                audioService.getMicStream()
+                    .then(stream => {
+                        src = audioCtx.createMediaStreamSource(stream)
+                        initAnalyser(src)
+                        const gainNode = audioCtx.createGain()
+                        gainNode.gain.setValueAtTime(0, audioCtx.currentTime)
+                    })
+            } else {
+                audioRef.value.src = audioService.getAudioSource();
+                src = audioCtx.createMediaElementSource(audioRef.value);
+                initAnalyser(src)
+            }
         }
 
         function initCanvas() {
@@ -87,12 +107,12 @@ export default {
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             let x = 0;
 
-            analyser.getByteFrequencyData(dataArray);
+            analyser.value?.getByteFrequencyData(dataArray);
 
             canvasCtx.fillStyle = "black";
             canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
 
-            for (let [i, j] = [40, 41]; i < dataArray.length; i = j) {
+            for (let [i, j] = [40, 41]; i < dataArray?.length; i = j) {
 
                 j *= coef
 
@@ -124,6 +144,11 @@ export default {
                 loading.value = false;
                 renderWaveform();
             })
+
+            if (props.listeningMode) {
+                loading.value = false;
+                renderWaveform();
+            }
         })
 
         return {
@@ -133,10 +158,12 @@ export default {
             audioCtx,
             currentTime,
             loading,
-            hideInfos: computed(() => store.state.settings.infosHidden)
+            hideInfos: computed(() => store.state.settings.infosHidden),
+            audioService,
+            listeningMode: props.listeningMode
         }
     },
-}
+})
 </script>
 
 <style scoped>
