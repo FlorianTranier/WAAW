@@ -1,6 +1,6 @@
 <template>
     <main class="text-center p-4 mx-0">
-        <Infos id="infos" v-if="!loading && !hideInfos" :audioElement="audioRef" />
+        <Infos id="infos" v-show="!loading && !hideInfos" :audioElement="audioRef" />
         <Controls v-if="hideBtn && !loading" id="controls" :audioElement="audioRef" :audioContext="audioCtx" />
         <button v-if="!hideBtn && !loading" @click="playAudio" id="play-btn">
             <font-awesome-icon icon="play" />
