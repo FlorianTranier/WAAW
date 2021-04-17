@@ -20,10 +20,12 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { ref } from 'vue'
 import { useStore } from 'vuex'
-export default {
+
+export default defineComponent({
     props: {
         audioElement: HTMLAudioElement,
         audioContext: AudioContext
@@ -31,13 +33,14 @@ export default {
     setup(props) {
         const store = useStore()
         const paused = ref(true)
-        const volumeSliderRef = ref(null)
+        const volumeSliderRef = ref<HTMLInputElement | null>(null)
 
         const changeVolume = () => {
-            props.audioElement.volume = volumeSliderRef.value.value
+            if (!props.audioElement) return
+            props.audioElement.volume = parseInt(volumeSliderRef.value?.value ?? '50')
         }
 
-        paused.value = props.audioElement?.paused
+        paused.value = props.audioElement?.paused ?? true
 
         const playPause = () => {
             if (paused.value) {
@@ -46,7 +49,7 @@ export default {
             }
             else props.audioElement?.pause()
 
-            paused.value = props.audioElement?.paused
+            paused.value = props.audioElement?.paused ?? true
         }
 
         const toggleInfos = () => {
@@ -61,7 +64,7 @@ export default {
             toggleInfos
         }
     },
-}
+})
 </script>
 
 <style scoped>

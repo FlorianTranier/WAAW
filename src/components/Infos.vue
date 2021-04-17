@@ -12,16 +12,17 @@
     
 </template>
 
-<script>
+<script lang="ts">
 import { ref, onBeforeUnmount } from 'vue'
 import AudioService from '../services/audio/AudioService'
+import { defineComponent } from 'vue'
 
-export default {
+export default defineComponent({
     props: {
         audioElement: HTMLAudioElement
     },
     setup(props) {
-        const currentTime = ref(0)
+        const currentTime = ref('')
         const audioService = new AudioService()
         const thumbnailUrl = ref('')
         const title = ref('')
@@ -30,17 +31,19 @@ export default {
         audioService.getAudioInfos().then(data => {
             title.value = data.title
             thumbnailUrl.value = data.thumbnail
-            duration.value = parseInt(data.duration / 60).toString().padStart(2, '0')
+            const seconds = parseInt(data.duration)
+            duration.value = `${~~(seconds / 60)}`.padStart(2, '0')
                 + ':' 
-                + parseInt(data.duration % 60).toString().padStart(2, '0')
+                + `${~~(seconds % 60)}`.padStart(2, '0')
                 ?? '00:00'
         })
 
         const interval = setInterval(() => {
+            if (!props.audioElement) return
             currentTime.value = 
-                parseInt(props.audioElement?.currentTime / 60).toString().padStart(2, '0')
+                `${~~(props.audioElement.currentTime / 60)}`.padStart(2, '0')
                 + ':' 
-                + parseInt(props.audioElement?.currentTime % 60).toString().padStart(2, '0')
+                + `${~~(props.audioElement.currentTime % 60)}`.padStart(2, '0')
                 ?? '00:00'
         }, 1000)
 
@@ -53,7 +56,7 @@ export default {
             duration
         }
     },
-}
+})
 </script>
 
 <style scoped>

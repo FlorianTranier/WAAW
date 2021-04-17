@@ -16,7 +16,7 @@
     <Loader v-if="loading" />
 </template>
 
-<script>
+<script lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import AudioService from '../services/audio/AudioService'
 import Controls from './Controls.vue'
@@ -32,23 +32,27 @@ export default {
         const store = useStore()
 
         const hideBtn = ref(true)
-        const audioRef = ref(null)
+        const audioRef = ref<HTMLAudioElement | null>(null)
         const loading = ref(true)
 
-        const currentTime = computed(() => audioRef.value.currentTime)
-
+        const currentTime = computed(() => audioRef.value?.currentTime)
         const audioService = new AudioService()
-        let audioCtx, analyser, dataArray, audioElement
-        let canvasCtx, canvasElement, barWidth, barHeight, coef
+        let audioCtx: AudioContext = new AudioContext(),
+            analyser: AnalyserNode,
+            dataArray: Uint8Array,
+            canvasCtx: CanvasRenderingContext2D,
+            canvasElement: HTMLCanvasElement, 
+            barWidth: number,
+            barHeight: number,
+            coef: number
 
         function initAudioProcessing() {
-            audioElement = audioRef.value
-            
-            audioElement.src = audioService.getAudioSource();
-            audioElement.volume = 0.5
+            if (!audioRef.value) return
 
-            audioCtx = new AudioContext();
-            const src = audioCtx.createMediaElementSource(audioElement);
+            audioRef.value.src = audioService.getAudioSource();
+            audioRef.value.volume = 0.5
+
+            const src = audioCtx.createMediaElementSource(audioRef.value);
             analyser = audioCtx.createAnalyser();
 
             src.connect(analyser);
@@ -69,10 +73,10 @@ export default {
         }
 
         function initCanvas() {
-            canvasElement = document.getElementById('canvas');
+            canvasElement = <HTMLCanvasElement>document.getElementById('canvas')
             canvasElement.width = window.innerWidth;
             canvasElement.height = window.innerHeight;
-            canvasCtx = canvasElement.getContext("2d");
+            canvasCtx = <CanvasRenderingContext2D>canvasElement.getContext("2d");
             canvasCtx.fillStyle = "black";
             canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
         }
@@ -105,7 +109,7 @@ export default {
         }
 
         function playAudio() {
-            audioElement.play().catch((e) => console.error(e))
+            audioRef.value?.play().catch((e) => console.error(e))
             audioCtx.resume()
             hideBtn.value = true;
         }
@@ -113,8 +117,8 @@ export default {
         onMounted(() => {
             initCanvas()
             initAudioProcessing()
-            audioElement.addEventListener('loadeddata', () => {
-                audioElement.play()
+            audioRef.value?.addEventListener('loadeddata', () => {
+                audioRef.value?.play()
                 .then(() => hideBtn.value = true)
                 .catch(e => hideBtn.value = false);
                 loading.value = false;

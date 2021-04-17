@@ -1,11 +1,13 @@
-import { createStore } from 'vuex'
+export interface SettingsState {
+    infosHidden: boolean
+}
 
 const state = () => ({
     infosHidden: false
 })
 
 const mutations = {
-    toggleInfos(state) {
+    toggleInfos(state: SettingsState) {
         state.infosHidden = !state.infosHidden
     }
 }
