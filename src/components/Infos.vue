@@ -28,7 +28,7 @@ export default defineComponent({
         const title = ref('')
         const duration = ref('')
         
-        props.audioService.getAudioInfos().then(data => {
+        props.audioService?.getAudioInfos().then(data => {
             title.value = data.title
             thumbnailUrl.value = data.thumbnail
             const seconds = parseInt(data.duration)
