@@ -11,7 +11,7 @@ export default class AudioService {
 
     private BASE_URL = (<ImportMetaEnv>import.meta.env).DEV
         ? 'http://localhost:4000'
-        : 'https://boiling-tundra-34239.herokuapp.com'
+        : 'https://api.waaw.space'
 
     getAudioSource() {
         return `${this.BASE_URL}?videoId=${this.videoId}`
