@@ -5,16 +5,28 @@
                 <font-awesome-icon v-if="paused" icon="play" />
                 <font-awesome-icon v-else icon="pause" />
             </div>
-            <div class="control" id="volume-controls">
-                <font-awesome-icon icon="volume-down" />
-                <input @change="changeVolume" min=0 max=1 step=0.01 value='0.50' type="range" name="volume-slider" id="volume-slider" ref="volumeSliderRef" />
-                <font-awesome-icon icon="volume-up" />
-            </div>
             <div class="control">
                 <label for="toggleInfos">
                     Hide infos
                     <input type="checkbox" id="toggleInfos" @change="toggleInfos" />
                 </label>
+            </div>
+            <div class="control">
+                <label for="toggleVideo">
+                    Hide video
+                    <input type="checkbox" id="toggleVideo" @change="toggleVideo" />
+                </label>
+            </div>
+            <div class="control">
+                <label for="toggleVideoBlur">
+                    Toggle video blur
+                    <input type="checkbox" id="toggleVideoBlur" @change="toggleVideoBlur" />
+                </label>
+            </div>
+            <div class="control" id="volume-controls">
+                <font-awesome-icon icon="volume-down" />
+                <input @change="changeVolume" min=0 max=1 step=0.01 value='0.50' type="range" name="volume-slider" id="volume-slider" ref="volumeSliderRef" />
+                <font-awesome-icon icon="volume-up" />
             </div>
         </div>
     </div>
@@ -27,7 +39,7 @@ import { useStore } from 'vuex'
 
 export default defineComponent({
     props: {
-        audioElement: HTMLAudioElement,
+        audioElement: HTMLVideoElement,
         audioContext: AudioContext
     },
     setup(props) {
@@ -56,12 +68,22 @@ export default defineComponent({
             store.commit("settings/toggleInfos")
         }
 
+        const toggleVideo = () => {
+            store.commit("settings/toggleVideo")
+        }
+
+        const toggleVideoBlur = () => {
+            store.commit("settings/toggleVideoBlur")
+        }
+
         return {
             volumeSliderRef,
             changeVolume,
             paused,
             playPause,
-            toggleInfos
+            toggleInfos,
+            toggleVideo,
+            toggleVideoBlur
         }
     },
 })
@@ -71,17 +93,21 @@ export default defineComponent({
 
     #wrapper {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-evenly;
+        justify-content: center;
         width: 100%;
-        height: 100%;
+        height: 90vh;
         font-size: 2rem;
         transition: all 2s;
+        background-color: black;
+        padding-top: 10vh;
+        padding-bottom: 10vh;
     }
 
     .hidden {
         opacity: 0;
+        background: none;
     }
 
     #wrapper:hover {
