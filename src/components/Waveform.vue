@@ -3,7 +3,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, toRefs, watchEffect } from 'vue'
+import { defineComponent, ref, watch, toRefs, watchEffect, computed } from 'vue'
+import { useStore } from 'vuex'
 
 export default defineComponent({
     props: {
@@ -11,6 +12,7 @@ export default defineComponent({
         render: Boolean
     },
     setup(props) {
+        const store = useStore()
         const { analyser, render } = toRefs(props)
         const canvasElement = ref<HTMLCanvasElement | null>(null)
 
@@ -19,13 +21,14 @@ export default defineComponent({
         let coef: number
         let barWidth: number
         let barHeight: number
+        const backgroundColor = computed(() => store.state.settings.videoHidden ? 'black' : 'transparent')
 
         function initCanvas() {
             if (!canvasElement.value) throw Error('Failed to load canvas element !')
             canvasElement.value.width = window.innerWidth;
             canvasElement.value.height = window.innerHeight;
             canvasCtx = <CanvasRenderingContext2D>canvasElement.value.getContext("2d");
-            canvasCtx.fillStyle = "black";
+            canvasCtx.fillStyle = backgroundColor.value;
             canvasCtx.fillRect(0, 0, canvasElement.value.width, canvasElement.value.height);
         }
 
@@ -40,7 +43,7 @@ export default defineComponent({
 
             analyser.value?.getByteFrequencyData(dataArray);
 
-            canvasCtx.fillStyle = "black";
+            canvasCtx.fillStyle = backgroundColor.value;
             canvasCtx.fillRect(0, 0, canvasElement.value.width, canvasElement.value.height);
 
             for (let [i, j] = [40, 41]; i < dataArray?.length; i = j) {

@@ -6,12 +6,14 @@
         <button v-if="!hideBtn && !loading" @click="playAudio" id="play-btn">
             <font-awesome-icon icon="play" />
         </button>
-        <audio
-            controls
-            crossorigin="anonymous"
-            id="audio"
-            ref="audioRef"
-        />
+        <div id="video-wrapper" v-show="!loading && !hideVideo">
+            <video
+                crossorigin="anonymous"
+                id="audio"
+                ref="audioRef"
+                :class="{ blur: isBlurred }"
+            />
+        </div>
         <Waveform :analyser="analyser" :render="render" />
     </main>
 </template>
@@ -38,7 +40,7 @@ export default defineComponent({
 
         const hideBtn = ref(true)
         const render = ref(false)
-        const audioRef = ref<HTMLAudioElement | undefined>(undefined)
+        const audioRef = ref<HTMLVideoElement | undefined>(undefined)
         const loading = ref(true)
         const analyser = ref<AnalyserNode | undefined>(undefined)
 
@@ -96,7 +98,9 @@ export default defineComponent({
             render,
             loading,
             hideInfos: computed(() => store.state.settings.infosHidden),
-            audioService
+            hideVideo: computed(() => store.state.settings.videoHidden),
+            isBlurred: computed(() => store.state.settings.videoBlurred),
+            audioService,
         }
     },
 })
@@ -119,14 +123,12 @@ export default defineComponent({
 
     #controls {
         position: absolute;
-        left: 50%;
-        top: 10%;
-        width: 40vw;
-        height: 5vh;
-        background: black;
+        right: 0%;
+        top: 0%;
+        width: 15vw;
+        height: 100vh;
         color: white;
         font-size: 2rem;
-        transform: translate(-50%, -50%);
         z-index: 10;
     }
 
@@ -135,5 +137,26 @@ export default defineComponent({
         z-index: 10;
         height: 7rem;
         bottom: 2rem;
+    }
+
+    #video-wrapper {
+        z-index: -1;
+        display: flex;
+        justify-content: center;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+    }
+
+    .blur {
+        filter: blur(10px);
+        -webkit-filter: blur(10px);
+    }
+
+    main {
+        background-color: black;
     }
 </style>
