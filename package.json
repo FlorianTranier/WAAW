@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "docker-build": "docker build -t waaw . && docker tag waaw registry.ftranier.fr/waaw && docker push registry.ftranier.fr/waaw"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.35",

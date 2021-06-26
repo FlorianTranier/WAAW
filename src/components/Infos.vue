@@ -13,9 +13,10 @@
 </template>
 
 <script lang="ts">
-import { ref, onBeforeUnmount } from 'vue'
+import { ref, onBeforeUnmount, onMounted, computed } from 'vue'
 import AudioService from '../services/audio/AudioService'
 import { defineComponent } from 'vue'
+import { useStore } from 'vuex'
 
 export default defineComponent({
     props: {
@@ -23,20 +24,8 @@ export default defineComponent({
         audioService: AudioService
     },
     setup(props) {
+        const store = useStore()
         const currentTime = ref('')
-        const thumbnailUrl = ref('')
-        const title = ref('')
-        const duration = ref('')
-        
-        props.audioService?.getAudioInfos().then(data => {
-            title.value = data.title
-            thumbnailUrl.value = data.thumbnail
-            const seconds = parseInt(data.duration)
-            duration.value = `${~~(seconds / 60)}`.padStart(2, '0')
-                + ':' 
-                + `${~~(seconds % 60)}`.padStart(2, '0')
-                ?? '00:00'
-        })
 
         const interval = setInterval(() => {
             if (!props.audioElement) return
@@ -51,9 +40,9 @@ export default defineComponent({
         
         return {
             currentTime,
-            title,
-            thumbnailUrl,
-            duration
+            title: computed(() => store.state.video.title),
+            thumbnailUrl: computed(() => store.state.video.thumbnailUrl),
+            duration: computed(() => store.state.video.duration)
         }
     },
 })

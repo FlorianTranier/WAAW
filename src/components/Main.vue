@@ -68,7 +68,6 @@ export default defineComponent({
             audioRef.value.src = audioService.getAudioSource();
             const src = audioCtx.createMediaElementSource(audioRef.value);
             initAnalyser(src)
-            
         }
 
         function playAudio() {
@@ -79,12 +78,20 @@ export default defineComponent({
 
         onMounted(() => {
             initAudioProcessing()
-            audioRef.value?.addEventListener('loadeddata', () => {
+            audioRef.value?.addEventListener('loadeddata', async () => {
                 audioRef.value?.play()
                 .then(() => hideBtn.value = true)
                 .catch(e => hideBtn.value = false);
                 loading.value = false;
                 render.value = true;
+                await audioService.updateVideoInfos()
+            })
+
+            audioRef.value?.addEventListener('ended', async () => {
+                const { nextVideo } = await audioService.getAudioInfos()
+                audioService.videoId = nextVideo
+                initAudioProcessing()
+                await audioService.updateVideoInfos()
             })
         })
 
