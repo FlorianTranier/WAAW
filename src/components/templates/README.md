@@ -6,6 +6,7 @@ A visualizer is a vue component.
 
 - Has to be placed in `src/components/templates/visualizers`
 - Has to extend from `src/components/templates/base/VisualizerTemplate.vue`
+- Register the template in `src/components/templates/templates.ts`
 
 ## What you can do :
 
