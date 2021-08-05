@@ -6,6 +6,14 @@
                 <font-awesome-icon v-else icon="pause" />
             </div>
             <div class="control">
+                <label for="selectVisualizer">
+                    Visualizer<br />
+                    <select id="selectVisualizer" v-model="selectedVisualizer" @change="selectVisualizer">
+                        <option v-for="option in visualizerOptions" :key="option" :value="option">{{option}}</option>
+                    </select>
+                </label>
+            </div>
+            <div class="control">
                 <label for="toggleInfos">
                     Hide infos
                     <input type="checkbox" id="toggleInfos" @change="toggleInfos" />
@@ -36,6 +44,7 @@
 import { defineComponent } from 'vue'
 import { ref } from 'vue'
 import { useStore } from 'vuex'
+import { templatesComponents } from './templates/templates'
 
 export default defineComponent({
     props: {
@@ -43,9 +52,11 @@ export default defineComponent({
         audioContext: AudioContext
     },
     setup(props) {
+        const visualizerOptions = Object.keys(templatesComponents)
         const store = useStore()
         const paused = ref(true)
         const volumeSliderRef = ref<HTMLInputElement | null>(null)
+        const selectedVisualizer = ref(visualizerOptions[0])
 
         const changeVolume = () => {
             if (!props.audioElement) return
@@ -76,6 +87,10 @@ export default defineComponent({
             store.commit("settings/toggleVideoBlur")
         }
 
+        const selectVisualizer = (e: Event) => {
+            store.commit("settings/setTemplate", selectedVisualizer.value)
+        }
+
         return {
             volumeSliderRef,
             changeVolume,
@@ -83,7 +98,10 @@ export default defineComponent({
             playPause,
             toggleInfos,
             toggleVideo,
-            toggleVideoBlur
+            toggleVideoBlur,
+            selectVisualizer,
+            visualizerOptions,
+            selectedVisualizer
         }
     },
 })

@@ -1,16 +1,14 @@
-<template>
-    <canvas ref="canvasElement" id="canvas" />
+<template lang='pug'>
+include ../base/VisualizerTemplate.pug
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, watch, toRefs, watchEffect, computed } from 'vue'
 import { useStore } from 'vuex'
+import VisualizerTemplate from '../base/VisualizerTemplate.vue'
 
 export default defineComponent({
-    props: {
-        analyser: AnalyserNode,
-        render: Boolean
-    },
+    extends: VisualizerTemplate,
     setup(props) {
         const store = useStore()
         const { analyser, render } = toRefs(props)
@@ -62,20 +60,28 @@ export default defineComponent({
             }
         }
 
+        function initRendering() {
+            if (!canvasElement.value) throw Error('Failed to load canvas element !')
+            if (!analyser?.value) throw Error('Failed to load analyser !')
+            const bufferLength = analyser.value.frequencyBinCount;
+            dataArray = new Uint8Array(analyser.value.frequencyBinCount)
+            barWidth = (canvasElement.value.width / bufferLength) * 52;
+            coef = canvasElement.value.width <= 1920 ? 1.04 : 1.03
+            renderWaveform()
+        }
+
         watchEffect(() => {
             if (!canvasElement.value) throw Error('Failed to load canvas element !')
 
             initCanvas()
 
+            if (render.value) {
+                initRendering()
+            }
+
             watch(render, (render, _) => { 
                 if (render) {
-                    if (!canvasElement.value) throw Error('Failed to load canvas element !')
-                    if (!analyser?.value) throw Error('Failed to load analyser !')
-                    const bufferLength = analyser.value.frequencyBinCount;
-                    dataArray = new Uint8Array(analyser.value.frequencyBinCount)
-                    barWidth = (canvasElement.value.width / bufferLength) * 52;
-                    coef = canvasElement.value.width <= 1920 ? 1.04 : 1.03
-                    renderWaveform()
+                    initRendering()
                 }
             })
         }, { flush: 'post' })

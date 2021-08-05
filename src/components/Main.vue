@@ -14,7 +14,8 @@
                 :class="{ blur: isBlurred }"
             />
         </div>
-        <Waveform :analyser="analyser" :render="render" />
+        <component :is="template" :analyser="analyser" :render="render">
+        </component>
     </main>
 </template>
 
@@ -24,7 +25,7 @@ import AudioService from '../services/audio/AudioService'
 import Controls from './Controls.vue'
 import Loader from './Loader.vue'
 import Infos from './Infos.vue'
-import Waveform from './Waveform.vue'
+import { templatesComponents } from './templates/templates'
 import { useStore } from 'vuex'
 import { defineComponent } from 'vue'
 
@@ -33,7 +34,7 @@ export default defineComponent({
         videoPath: String
     },
     components: {
-        Controls, Loader, Infos, Waveform
+        Controls, Loader, Infos, ...templatesComponents
     },
     setup(props) {
         const store = useStore()
@@ -107,6 +108,7 @@ export default defineComponent({
             hideInfos: computed(() => store.state.settings.infosHidden),
             hideVideo: computed(() => store.state.settings.videoHidden),
             isBlurred: computed(() => store.state.settings.videoBlurred),
+            template: computed(() => store.state.settings.template),
             audioService,
         }
     },
